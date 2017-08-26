@@ -5,7 +5,9 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"strings"
 	"time"
+  iconv "github.com/djimenez/iconv-go"
 )
+
 
 func main() {
 	//メイン処理のループ間隔(秒)
@@ -34,7 +36,13 @@ func main() {
 		//divのidを目印に説明文を取得して表示する
 		doc.Find(".titleList").Each(func(i int, s *goquery.Selection) {
 			s.Find("p").Each(func(i int, s *goquery.Selection) {
-				fmt.Println(s.Text())
+				
+//				utf8Txt := make([]byte, len(gb2312Txt))
+//				utf8Txt = utf8Txt[:]	
+//				iconv.Convert(gb2312Txt, utf8Txt, "gb2312", "utf-8")	
+
+				utf8Txt,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")	
+				fmt.Println(utf8Txt)
 			})
 
 			fmt.Println()

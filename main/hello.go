@@ -11,7 +11,9 @@ func main() {
 	//メイン処理のループ間隔(秒)
 	const sleepInterval = 10
 	//wikipediaのおまかせ表示URL
-	const wikipediaRandomUrl = "https://ja.wikipedia.org/wiki/特別:おまかせ表示"
+//	const wikipediaRandomUrl = "https://ja.wikipedia.org/wiki/特別:おまかせ表示"
+
+	const wikipediaRandomUrl = "http://m.6park.com/index.php" 
 
 	c := time.Tick(sleepInterval * time.Second)
 	for now := range c {
