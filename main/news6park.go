@@ -6,15 +6,55 @@ import (
 	"strings"
 	"time"
   iconv "github.com/djimenez/iconv-go"
+    "database/sql"
+  _ "github.com/go-sql-driver/mysql"
 )
 
+
+func getNewsContent(url string) (string, error) {
+	doc, err := goquery.NewDocument(url)
+	if err != nil {
+		fmt.Println(err)
+	}
+	
+	newsCont := ""
+	doc.Find("div.cnt").Each(func(_ int, s *goquery.Selection) {
+		content,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")
+		newsCont = newsCont + content
+	})
+	
+	return newsCont, nil
+}
 
 func main() {
 	//メイン処理のループ間隔(秒)
 	const sleepInterval = 10
 
-	const news6parkUrl = "http://m.6park.com/index.php" 
+	const news6parkUrl = "http://m.6park.com/" 
 
+	// DB接続
+	db, err := sql.Open("mysql", "wpuser:asdffdsa1234@/wp_myblog")
+	if err != nil {
+		panic(err.Error())
+  	}
+	
+	defer db.Close() // 関数がリターンする直前に呼び出される
+	
+	// 最大PostIDを取得
+	var maxCount int64
+	rows, err := db.Query(`SELECT MAX(id) FROM wp_posts`,)
+	
+	if err != nil {
+		panic(err.Error())
+	}
+	
+	for rows.Next() {
+		if err := rows.Scan(&maxCount); err != nil {
+				panic(err.Error())
+			}
+	}
+	rows.Close()
+	
 	c := time.Tick(sleepInterval * time.Second)
 	for now := range c {
 		doc, err := goquery.NewDocument(news6parkUrl)
@@ -34,18 +74,47 @@ func main() {
 		})
 
 		//divのidを目印に説明文を取得して表示する
-		doc.Find(".titleList").Each(func(i int, s *goquery.Selection) {
+		doc.Find("a.titleList").Each(func(i int, s *goquery.Selection) {
+			
+			url, _ := s.Attr("href")
+			if strings.HasPrefix(url, "./index.php") {
+				url = news6parkUrl+ fmt.Sprint(url[2:len(url)])
+			}
+			
+			fmt.Println(url)
+//			html, _ := s.Html()
+//			fmt.Println(html)
 			s.Find("p").Each(func(i int, s *goquery.Selection) {
 				
 //				utf8Txt := make([]byte, len(gb2312Txt))
 //				utf8Txt = utf8Txt[:]	
 //				iconv.Convert(gb2312Txt, utf8Txt, "gb2312", "utf-8")	
 
-				utf8Txt,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")	
-				fmt.Println(utf8Txt)
+				utf8Title,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")	
+				fmt.Println(utf8Title)
+
+				utf8Content,_:= getNewsContent(url)
+				maxCount += 1
+
+				// WP_POSTSへ登録
+				_, err := db.Exec(`INSERT INTO wp_posts VALUES (?, ?, current_timestamp, (current_timestamp - interval 9 hour), ?, ?, '', 'publish', 'closed', 'closed', '', ?, '', '', current_timestamp, (current_timestamp - interval 9 hour), '', 0, ?, 0, 'post', '' ,0)`,
+							maxCount,
+							2,
+							utf8Content, 
+							utf8Title, 
+							maxCount, 
+							"http://104.198.63.85/?p="+fmt.Sprint(maxCount),
+						)
+				if err != nil {
+					panic(err.Error())
+				}
+
 			})
 
 			fmt.Println()
+			
 		})
 	}
 }
+
+
