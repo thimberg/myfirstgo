@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
-	"time"
+//	"time"
   iconv "github.com/djimenez/iconv-go"
     "database/sql"
   _ "github.com/go-sql-driver/mysql"
@@ -18,7 +18,7 @@ func getNewsContent(url string) (string, error) {
 	}
 	
 	newsCont := ""
-	doc.Find("div.cnt").Each(func(_ int, s *goquery.Selection) {
+	doc.Find("section.item").Each(func(_ int, s *goquery.Selection) {
 		content,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")
 		newsCont = newsCont + content
 	})
@@ -28,9 +28,9 @@ func getNewsContent(url string) (string, error) {
 
 func main() {
 	//メイン処理のループ間隔(秒)
-	const sleepInterval = 10
+	const sleepInterval = 1000
 
-	const news6parkUrl = "http://m.6park.com/" 
+	const news6parkUrl = "https://m.6park.com/" 
 
 	// DB接続
 	db, err := sql.Open("mysql", "wpuser:asdffdsa1234@/wp_myblog")
@@ -55,27 +55,28 @@ func main() {
 	}
 	rows.Close()
 	
-	c := time.Tick(sleepInterval * time.Second)
-	for now := range c {
+///	c := time.Tick(sleepInterval * time.Second)
+///	for now := range c {
 		doc, err := goquery.NewDocument(news6parkUrl)
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		//ランダムに取得したwikipediaのタイトルと取得日時を表示する
-		doc.Find("head").Each(func(i int, s *goquery.Selection) {
-			title := s.Find("title").Text()
-			//取得したタイトルから"- Wikipedia"という文字列を削除
-			replacedTitle := strings.Replace(title, "- Wikipedia", "", -1)
-
-			fmt.Println(strings.Repeat("☆", 50))
-			fmt.Println(now.Format("2006-01-02 15:4:5"), replacedTitle)
-			fmt.Println(strings.Repeat("☆", 50))
-		})
+///		doc.Find("head").Each(func(i int, s *goquery.Selection) {
+///			title := s.Find("title").Text()
+///			//取得したタイトルから"- Wikipedia"という文字列を削除
+///			replacedTitle := strings.Replace(title, "- Wikipedia", "", -1)
+///
+///			fmt.Println(strings.Repeat("☆", 50))
+///			fmt.Println(now.Format("2006-01-02 15:4:5"), replacedTitle)
+///			fmt.Println(replacedTitle)
+///			fmt.Println(strings.Repeat("☆", 50))
+///		})
 
 		//divのidを目印に説明文を取得して表示する
-		doc.Find("a.titleList").Each(func(i int, s *goquery.Selection) {
-			
+		doc.Find("section.item").Each(func(i int, s *goquery.Selection) {
+			fmt.Println(s)
 			url, _ := s.Attr("href")
 			if strings.HasPrefix(url, "./index.php") {
 				url = news6parkUrl+ fmt.Sprint(url[2:len(url)])
@@ -96,6 +97,9 @@ func main() {
 				utf8Content,_:= getNewsContent(url)
 				maxCount += 1
 
+				
+				fmt.Println(utf8Content)
+/*
 				// WP_POSTSへ登録
 				_, err := db.Exec(`INSERT INTO wp_posts VALUES (?, ?, current_timestamp, (current_timestamp - interval 9 hour), ?, ?, '', 'publish', 'closed', 'closed', '', ?, '', '', current_timestamp, (current_timestamp - interval 9 hour), '', 0, ?, 0, 'post', '' ,0)`,
 							maxCount,
@@ -108,13 +112,13 @@ func main() {
 				if err != nil {
 					panic(err.Error())
 				}
-
+*/
 			})
 
 			fmt.Println()
 			
 		})
-	}
+///	}
 }
 
 
