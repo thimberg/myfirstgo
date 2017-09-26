@@ -9,8 +9,6 @@ import (
     "database/sql"
   _ "github.com/go-sql-driver/mysql"
 )
-
-
 func getNewsContent(url string) (string, error) {
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
@@ -18,7 +16,7 @@ func getNewsContent(url string) (string, error) {
 	}
 	
 	newsCont := ""
-	doc.Find("div#mainContent").Each(func(_ int, s *goquery.Selection) {
+	doc.Find("div#shownewsc").Each(func(_ int, s *goquery.Selection) {
 		content,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")
 		newsCont = newsCont + content
 	})
@@ -80,7 +78,6 @@ func main() {
 			}
 	}
 	rows.Close()
-	
 ///	c := time.Tick(sleepInterval * time.Second)
 ///	for now := range c {
 		doc, err := goquery.NewDocument(news6parkUrl)
@@ -123,16 +120,13 @@ func main() {
 //				utf8Txt := make([]byte, len(gb2312Txt))
 //				utf8Txt = utf8Txt[:]	
 //				iconv.Convert(gb2312Txt, utf8Txt, "gb2312", "utf-8")	
-
 				utf8Title,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")	
-				fmt.Println(utf8Title)
-
+///				fmt.Println(utf8Title)
 				utf8Content,_:= getNewsContent(url)
 				maxCount += 1
-
 				
-				fmt.Println(utf8Content)
-/*
+///				fmt.Println(utf8Content)
+
 				// WP_POSTSへ登録
 				_, err := db.Exec(`INSERT INTO wp_posts VALUES (?, ?, current_timestamp, (current_timestamp - interval 9 hour), ?, ?, '', 'publish', 'closed', 'closed', '', ?, '', '', current_timestamp, (current_timestamp - interval 9 hour), '', 0, ?, 0, 'post', '' ,0)`,
 							maxCount,
@@ -145,7 +139,7 @@ func main() {
 				if err != nil {
 					panic(err.Error())
 				}
-*/
+
 ///			})
 
 			fmt.Println()
