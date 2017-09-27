@@ -113,15 +113,18 @@ func main() {
 			if strings.HasPrefix(url, "./index.php") {
 				url = news6parkUrl+ fmt.Sprint(url[2:len(url)])
 			}
-			
+		
+			if ! strings.HasPrefix(url, "http://news.6park.com/newspark") {
+				return
+			}
 			fmt.Println(url)
 //			s.Find("p").Each(func(i int, s *goquery.Selection) {
 //				
 //				utf8Txt := make([]byte, len(gb2312Txt))
 //				utf8Txt = utf8Txt[:]	
 //				iconv.Convert(gb2312Txt, utf8Txt, "gb2312", "utf-8")	
+
 				utf8Title,_ := iconv.ConvertString(s.Text(), "gb2312", "utf-8")	
-///				fmt.Println(utf8Title)
 				utf8Content,_:= getNewsContent(url)
 				maxCount += 1
 				
