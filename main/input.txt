@@ -1,0 +1,3 @@
+,,à–¾,,url,newslist url selector,newslist title selector,news contents,encoding
+"http://www.6park.com/","div#parknews > a","","div#shownewsc","gb2312"
+"https://news.yahoo.co.jp/list/","div.listArea > ul.list a","span.ttl","p.hbody","UTF-8"
